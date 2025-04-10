@@ -1,11 +1,15 @@
 import axios from "axios";
-import { format } from "date-fns";
-import { useEffect, useState } from "react";
+import { compareAsc, format } from "date-fns";
+import { useContext, useEffect, useState } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import { AuthContext } from "../providers/AuthProvider";
+import toast from "react-hot-toast";
 
 const JobDetails = () => {
+  const navigate=useNavigate()
+  const{user}=useContext(AuthContext)
   const { id } = useParams();
   const [startDate, setStartDate] = useState(new Date());
   const [jobs, setjobs] = useState({});
@@ -32,7 +36,48 @@ const JobDetails = () => {
     bid_count,
     dateLine,
     buyer,
+    _id
   } = jobs || {};
+ 
+
+  // handel form Submit
+  const handelSubmit= async e=>{
+    e.preventDefault()
+    const form=e.target
+    const price=form.price.value
+    const email=user?.email
+    const comment=form.comment.value
+    const jobid=_id
+    // const deadline=startDate
+
+    //0.chdeck bid parmissions validation
+    if(user?.email===buyer?.email) return toast.error("action not parmitted!")
+
+    //1.Date Line Crosed validation
+    if(compareAsc(new Date(),new Date(dateLine))===1)return toast.error('Date Line over')
+    
+    //2.Price within maximum price range validation
+    if(price>max_price)return toast.error('offer less or atleast equal to maximum price!')
+    //3. buyer dateline and seller dateLine validation
+    if(compareAsc(new Date(startDate),new Date(dateLine))===1)return toast.error('Offer a date with in dateline')
+
+  const bidData={ price, email,dateLine:startDate, comment,jobid,title,category,status:'pending',buyer:buyer?.email};
+
+
+  try{
+    const {data}=await axios.post(`${import.meta.env.VITE_API_URL}/add-bid`,bidData);
+    toast.success("Data Added Successfully")
+    form.reset()
+    console.log(data);
+    navigate("/my-bids")
+  }catch (err){
+    console.log(err);
+    toast.error(err?.response?.data)
+  }
+
+  }
+
+
 
   return (
     <div className="flex flex-col md:flex-row justify-around gap-5  items-center min-h-[calc(100vh-306px)] md:max-w-screen-xl mx-auto ">
@@ -69,6 +114,7 @@ const JobDetails = () => {
             </div>
             <div className="rounded-full object-cover overflow-hidden w-14 h-14">
               <img
+                referrerPolicy="no-referrer"
                 src={buyer?.photo}
                 alt=""
               />
@@ -85,7 +131,7 @@ const JobDetails = () => {
           {bid_count}
         </h2>
 
-        <form>
+        <form onSubmit={handelSubmit}>
           <div className="grid grid-cols-1 gap-6 mt-4 sm:grid-cols-2">
             <div>
               <label className="text-gray-700 " htmlFor="price">
@@ -102,12 +148,13 @@ const JobDetails = () => {
 
             <div>
               <label className="text-gray-700 " htmlFor="emailAddress">
-                {buyer?.email}
+                email Address
               </label>
               <input
                 id="emailAddress"
                 type="email"
                 name="email"
+                defaultValue={user?.email}
                 disabled
                 className="block w-full px-4 py-2 mt-2 text-gray-700 bg-white border border-gray-200 rounded-md   focus:border-blue-400 focus:ring-blue-300 focus:ring-opacity-40  focus:outline-none focus:ring"
               />

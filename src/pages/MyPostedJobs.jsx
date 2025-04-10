@@ -13,9 +13,7 @@ const MyPostedJobs = () => {
   }, [user]);
 
   const fetchAllJobs = async () => {
-    const { data } = await axios.get(
-      `${import.meta.env.VITE_API_URL}/jobs/${user?.email}`
-    );
+    const {data}= await axios.get(`${import.meta.env.VITE_API_URL}/jobs/${user?.email}`);
     setjobs(data);
   };
 
