@@ -2,24 +2,42 @@
 import { Tab, Tabs, TabList, TabPanel } from "react-tabs";
 import "react-tabs/style/react-tabs.css";
 import JobCard from "./JobCard";
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
+import LoadingSpinner from "./LoadingSpinner";
 
 const TabCategories = () => {
-  const [jobs, setjobs] = useState([]);
-  useEffect(() => {
-    fetchAllJobs();
-  }, []);
+  // const [jobs, setjobs] = useState([]);
+  // useEffect(() => {
+  //   fetchAllJobs();
+  // }, []);
 
-  const fetchAllJobs = async () => {
-    const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/jobs`);
-    setjobs(data);
-  };
- 
-  // Category Data Filter 
-  const webDevelopment=jobs.filter(job=>job.category==="Web Development")
-  const graphicDesign=jobs.filter(job=>job.category==="Graphics Design")
-  const digitalMarketing=jobs.filter(job=>job.category==="Digital Marketing")
+  // const fetchAllJobs = async () => {
+  //   const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/jobs`);
+  //   setjobs(data);
+  // };
+
+  const {data:jobs,isLoading}= useQuery({
+    queryKey: ["todos"],
+    queryFn: async () => {
+      const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/jobs`);
+      return data;
+    },
+  });
+
+  // console.log(data,isLoading);
+  if(isLoading) return <LoadingSpinner></LoadingSpinner>
+
+  // Category Data Filter
+  const webDevelopment = jobs.filter(
+    (job) => job.category === "Web Development"
+  );
+  const graphicDesign = jobs.filter(
+    (job) => job.category === "Graphics Design"
+  );
+  const digitalMarketing = jobs.filter(
+    (job) => job.category === "Digital Marketing"
+  );
 
   return (
     <Tabs>

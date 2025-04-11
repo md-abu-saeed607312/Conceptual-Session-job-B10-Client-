@@ -8,6 +8,7 @@ export const axiosInstance = axios.create({
   withCredentials: true,
 });
 
+
 const UseAxiosSecure = () => {
   const { logOut } = useContext(AuthContext);
   const navigate = useNavigate();
